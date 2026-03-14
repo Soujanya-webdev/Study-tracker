@@ -1,1 +1,810 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudyFlow — YouTube Learning Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #ffffff0d;
+    --border2: #ffffff1a;
+    --accent: #7c6af7;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --subtle: #2a2a3e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 999px; }
+
+  /* noise overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+
+  .app-wrapper { position: relative; z-index: 1; }
+
+  /* glow orb */
+  .orb {
+    position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0;
+  }
+
+  /* glass card */
+  .glass {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+  }
+  .glass:hover { border-color: #ffffff26; }
+
+  /* modal backdrop */
+  .modal-bg {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.15s ease;
+  }
+  .modal-box {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    width: 100%; max-width: 480px;
+    padding: 32px;
+    animation: slideUp 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* input */
+  .inp {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    color: var(--text);
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .inp:focus { border-color: var(--accent); }
+  .inp::placeholder { color: var(--muted); }
+  select.inp option { background: #1a1a26; }
+
+  /* btn */
+  .btn {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #6b59e6; transform: translateY(-1px); box-shadow: 0 8px 24px #7c6af740; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border2); }
+  .btn-ghost:hover { color: var(--text); border-color: #ffffff30; background: #ffffff08; }
+  .btn-danger { background: transparent; color: var(--red); border: 1px solid #f8717130; }
+  .btn-danger:hover { background: #f8717115; }
+
+  /* progress bar */
+  .prog-track {
+    width: 100%; height: 5px;
+    background: var(--subtle);
+    border-radius: 999px; overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%; border-radius: 999px;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* tab pill */
+  .tab-pill {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px; font-weight: 600;
+    padding: 6px 14px; border-radius: 8px;
+    cursor: pointer; border: none;
+    transition: all 0.15s; letter-spacing: 0.03em;
+    background: transparent; color: var(--muted);
+  }
+  .tab-pill.active { background: var(--subtle); color: var(--text); }
+  .tab-pill:hover:not(.active) { color: var(--text); }
+
+  /* checkbox */
+  .cb-wrap { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .cb-wrap input[type=checkbox] {
+    appearance: none; width: 17px; height: 17px; flex-shrink: 0;
+    border: 2px solid var(--border2); border-radius: 5px; cursor: pointer;
+    transition: all 0.15s; background: transparent;
+  }
+  .cb-wrap input[type=checkbox]:checked {
+    background: var(--accent); border-color: var(--accent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-size: 70%; background-repeat: no-repeat; background-position: center;
+  }
+
+  /* video row */
+  .video-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 10px;
+    transition: background 0.15s;
+    group: true;
+  }
+  .video-row:hover { background: #ffffff06; }
+
+  /* badge */
+  .badge {
+    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
+    padding: 3px 9px; border-radius: 99px; letter-spacing: 0.05em; text-transform: uppercase;
+  }
+
+  /* card hover lift */
+  .course-card { transition: transform 0.2s, box-shadow 0.2s; }
+  .course-card:hover { transform: translateY(-2px); box-shadow: 0 16px 40px #0000004a; }
+
+  /* stat card */
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px;
+  }
+
+  /* empty state */
+  .empty-dashed {
+    border: 2px dashed #ffffff12; border-radius: 16px;
+    padding: 60px 20px; text-align: center;
+  }
+
+  /* side nav */
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; border-radius: 9px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s; color: var(--muted); border: none; background: none; width: 100%;
+  }
+  .nav-item:hover { color: var(--text); background: #ffffff08; }
+  .nav-item.active { color: var(--text); background: var(--subtle); }
+
+  /* toast */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 100;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 12px; padding: 12px 18px;
+    font-size: 13px; font-weight: 500;
+    display: flex; align-items: center; gap: 10px;
+    animation: toastIn 0.3s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 8px 32px #00000060;
+  }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(12px) scale(0.95); } to { opacity: 1; transform: none; } }
+
+  /* search */
+  .search-wrap { position: relative; }
+  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+  .search-wrap input { padding-left: 38px; }
+
+  /* drag drop hint strip */
+  .section-label {
+    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+const uid = () => Math.random().toString(36).slice(2,10);
+const ytThumb = id => `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+const ytUrl = id => `https://youtube.com/watch?v=${id}`;
+const extractYtId = url => {
+  if (!url) return null;
+  const patterns = [
+    /youtu\.be\/([^?&\s]+)/,
+    /youtube\.com\/watch\?.*v=([^&\s]+)/,
+    /youtube\.com\/embed\/([^?&\s]+)/,
+    /youtube\.com\/shorts\/([^?&\s]+)/,
+  ];
+  for (const p of patterns) { const m = url.match(p); if (m) return m[1]; }
+  if (/^[A-Za-z0-9_-]{11}$/.test(url.trim())) return url.trim();
+  return null;
+};
+
+const CATEGORIES = ['Coding','Design','Science','Math','Language','Business','Music','Other'];
+const CAT_COLORS = {
+  Coding:'#7c6af7', Design:'#f472b6', Science:'#34d399',
+  Math:'#fbbf24', Language:'#60a5fa', Business:'#fb923c',
+  Music:'#a78bfa', Other:'#94a3b8'
+};
+
+const LS_KEY = 'studyflow_v1';
+const loadData = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; } };
+const saveData = d => localStorage.setItem(LS_KEY, JSON.stringify(d));
+
+// ── icons (inline SVG) ────────────────────────────────────────────────────────
+const Icon = ({ name, size=16, color='currentColor', ...p }) => {
+  const icons = {
+    plus: <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+    x: <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+    play: <polygon points="5 3 19 12 5 21 5 3"/>,
+    check: <polyline points="20 6 9 12 4 10"/>,
+    trash: <><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></>,
+    edit: <><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>,
+    book: <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></>,
+    search: <><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>,
+    filter: <><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></>,
+    youtube: <><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.96-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></>,
+    grid: <><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></>,
+    list: <><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></>,
+    star: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>,
+    trend: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
+    zap: <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>,
+    arrow: <><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>,
+    externalLink: <><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></>,
+    folder: <><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></>,
+    info: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
+    chevDown: <polyline points="6 9 12 15 18 9"/>,
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      {icons[name]}
+    </svg>
+  );
+};
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+let _toastCb = null;
+const Toast = () => {
+  const [msg, setMsg] = useState(null);
+  useEffect(() => {
+    _toastCb = (m, type='success') => { setMsg({m,type}); setTimeout(() => setMsg(null), 2600); };
+  }, []);
+  if (!msg) return null;
+  const colors = { success: '#34d399', error: '#f87171', info: '#7c6af7' };
+  return (
+    <div className="toast">
+      <span style={{color: colors[msg.type]}}>●</span>
+      {msg.m}
+    </div>
+  );
+};
+const toast = (m, type) => _toastCb && _toastCb(m, type);
+
+// ── AddCourseModal ─────────────────────────────────────────────────────────────
+const AddCourseModal = ({ onClose, onSave, initial }) => {
+  const [title, setTitle] = useState(initial?.title || '');
+  const [cat, setCat] = useState(initial?.category || 'Coding');
+  const [desc, setDesc] = useState(initial?.description || '');
+  const handleSave = () => {
+    if (!title.trim()) return toast('Course title is required', 'error');
+    onSave({ title: title.trim(), category: cat, description: desc.trim() });
+    onClose();
+  };
+  return (
+    <div className="modal-bg" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box">
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
+          <div>
+            <h2 style={{fontSize:20,marginBottom:4}}>{initial ? 'Edit Course' : 'New Course'}</h2>
+            <p style={{color:'var(--muted)',fontSize:13}}>Organize your learning into a structured course</p>
+          </div>
+          <button className="btn btn-ghost" style={{padding:'8px',borderRadius:8}} onClick={onClose}><Icon name="x" size={16}/></button>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div>
+            <div className="section-label" style={{marginBottom:6}}>Course Title</div>
+            <input className="inp" placeholder="e.g. Full-Stack React Masterclass" value={title} onChange={e=>setTitle(e.target.value)} autoFocus />
+          </div>
+          <div>
+            <div className="section-label" style={{marginBottom:6}}>Category</div>
+            <select className="inp" value={cat} onChange={e=>setCat(e.target.value)}>
+              {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <div className="section-label" style={{marginBottom:6}}>Description <span style={{color:'var(--muted)'}}>— optional</span></div>
+            <textarea className="inp" placeholder="What will you learn from this course?" value={desc} onChange={e=>setDesc(e.target.value)} rows={3} style={{resize:'vertical'}}/>
+          </div>
+        </div>
+        <div style={{display:'flex',gap:10,marginTop:24,justifyContent:'flex-end'}}>
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleSave}><Icon name="folder" size={14}/>{initial ? 'Save Changes' : 'Create Course'}</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── AddVideoModal ─────────────────────────────────────────────────────────────
+const AddVideoModal = ({ onClose, onSave, courseTitle }) => {
+  const [url, setUrl] = useState('');
+  const [title, setTitle] = useState('');
+  const [preview, setPreview] = useState(null);
+  const [checking, setChecking] = useState(false);
+
+  const handleUrlChange = (val) => {
+    setUrl(val);
+    const id = extractYtId(val);
+    if (id) {
+      setPreview(id);
+      if (!title) setTitle('');
+    } else {
+      setPreview(null);
+    }
+  };
+
+  const handleSave = () => {
+    if (!url.trim()) return toast('Paste a YouTube URL', 'error');
+    const id = extractYtId(url.trim());
+    if (!id) return toast('Invalid YouTube URL or ID', 'error');
+    if (!title.trim()) return toast('Give this video a title', 'error');
+    onSave({ id: uid(), youtubeId: id, title: title.trim(), isCompleted: false, addedAt: Date.now() });
+    onClose();
+  };
+
+  return (
+    <div className="modal-bg" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box">
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
+          <div>
+            <h2 style={{fontSize:20,marginBottom:4}}>Add Video</h2>
+            <p style={{color:'var(--muted)',fontSize:13}}>Adding to <span style={{color:'var(--accent2)'}}>{courseTitle}</span></p>
+          </div>
+          <button className="btn btn-ghost" style={{padding:'8px',borderRadius:8}} onClick={onClose}><Icon name="x" size={16}/></button>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div>
+            <div className="section-label" style={{marginBottom:6}}>YouTube URL or Video ID</div>
+            <input className="inp" placeholder="https://youtube.com/watch?v=..." value={url} onChange={e=>handleUrlChange(e.target.value)} autoFocus />
+          </div>
+          {preview && (
+            <div style={{borderRadius:10,overflow:'hidden',border:'1px solid var(--border2)',position:'relative'}}>
+              <img src={ytThumb(preview)} alt="thumbnail" style={{width:'100%',display:'block',aspectRatio:'16/9',objectFit:'cover'}}
+                onError={e=>{e.target.style.display='none'}} />
+              <div style={{position:'absolute',inset:0,background:'linear-gradient(to top, #00000080, transparent)',display:'flex',alignItems:'flex-end',padding:10}}>
+                <span style={{fontSize:11,color:'#fff',opacity:0.7}}>ID: {preview}</span>
+              </div>
+            </div>
+          )}
+          <div>
+            <div className="section-label" style={{marginBottom:6}}>Video Title</div>
+            <input className="inp" placeholder="e.g. React Hooks Deep Dive" value={title} onChange={e=>setTitle(e.target.value)} />
+          </div>
+        </div>
+        <div style={{display:'flex',gap:10,marginTop:24,justifyContent:'flex-end'}}>
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleSave}><Icon name="youtube" size={14}/>Add Video</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── CourseDetail ──────────────────────────────────────────────────────────────
+const CourseDetail = ({ course, onBack, onUpdateCourse }) => {
+  const [showAddVideo, setShowAddVideo] = useState(false);
+  const [editVideo, setEditVideo] = useState(null);
+  const [filter, setFilter] = useState('all');
+
+  const completed = course.videos.filter(v => v.isCompleted).length;
+  const total = course.videos.length;
+  const pct = total ? Math.round((completed/total)*100) : 0;
+  const catColor = CAT_COLORS[course.category] || '#94a3b8';
+
+  const addVideo = (v) => {
+    onUpdateCourse({ ...course, videos: [...course.videos, v] });
+    toast('Video added!');
+  };
+
+  const toggleVideo = (id) => {
+    const vids = course.videos.map(v => v.id === id ? {...v, isCompleted: !v.isCompleted} : v);
+    onUpdateCourse({ ...course, videos: vids });
+  };
+
+  const deleteVideo = (id) => {
+    const vids = course.videos.filter(v => v.id !== id);
+    onUpdateCourse({ ...course, videos: vids });
+    toast('Video removed', 'info');
+  };
+
+  const filtered = course.videos.filter(v => {
+    if (filter === 'done') return v.isCompleted;
+    if (filter === 'todo') return !v.isCompleted;
+    return true;
+  });
+
+  return (
+    <div style={{maxWidth:800,margin:'0 auto',padding:'0 0 60px'}}>
+      {showAddVideo && <AddVideoModal courseTitle={course.title} onClose={()=>setShowAddVideo(false)} onSave={addVideo}/>}
+
+      {/* back + header */}
+      <div style={{marginBottom:32}}>
+        <button className="btn btn-ghost" style={{marginBottom:20,gap:8}} onClick={onBack}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+          All Courses
+        </button>
+        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:16,flexWrap:'wrap'}}>
+          <div>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
+              <span className="badge" style={{background: catColor+'22', color: catColor}}>{course.category}</span>
+              {pct === 100 && <span className="badge" style={{background:'#34d39922',color:'#34d399'}}>✓ Complete</span>}
+            </div>
+            <h1 style={{fontSize:28,fontWeight:800,marginBottom:6}}>{course.title}</h1>
+            {course.description && <p style={{color:'var(--muted)',fontSize:14,maxWidth:500}}>{course.description}</p>}
+          </div>
+          <button className="btn btn-primary" onClick={()=>setShowAddVideo(true)} style={{flexShrink:0}}>
+            <Icon name="plus" size={14}/>Add Video
+          </button>
+        </div>
+      </div>
+
+      {/* progress */}
+      <div className="glass" style={{padding:20,marginBottom:24}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+          <div style={{display:'flex',gap:24}}>
+            <div><div style={{fontSize:22,fontWeight:700}}>{completed}</div><div style={{fontSize:12,color:'var(--muted)'}}>Completed</div></div>
+            <div style={{width:1,background:'var(--border2)'}}/>
+            <div><div style={{fontSize:22,fontWeight:700}}>{total}</div><div style={{fontSize:12,color:'var(--muted)'}}>Total</div></div>
+            <div style={{width:1,background:'var(--border2)'}}/>
+            <div><div style={{fontSize:22,fontWeight:700,color:catColor}}>{pct}%</div><div style={{fontSize:12,color:'var(--muted)'}}>Progress</div></div>
+          </div>
+        </div>
+        <div className="prog-track">
+          <div className="prog-fill" style={{width:`${pct}%`, background: pct===100?'#34d399':catColor}}/>
+        </div>
+      </div>
+
+      {/* filter */}
+      <div style={{display:'flex',gap:6,marginBottom:18}}>
+        {[['all','All'],['todo','To Watch'],['done','Watched']].map(([k,l]) => (
+          <button key={k} className={`tab-pill ${filter===k?'active':''}`} onClick={()=>setFilter(k)}>{l}</button>
+        ))}
+      </div>
+
+      {/* video list */}
+      {filtered.length === 0 ? (
+        <div className="empty-dashed">
+          <Icon name="youtube" size={32} color="var(--muted)" style={{margin:'0 auto 12px',display:'block'}}/>
+          <p style={{color:'var(--muted)',fontSize:14}}>
+            {total === 0 ? 'No videos yet. Add your first video to get started!' : 'No videos match this filter.'}
+          </p>
+        </div>
+      ) : (
+        <div className="glass" style={{padding:8}}>
+          {filtered.map((v, i) => (
+            <div key={v.id} className="video-row" style={{borderBottom: i<filtered.length-1?'1px solid var(--border)':'none'}}>
+              <label className="cb-wrap" style={{flex:1,minWidth:0}}>
+                <input type="checkbox" checked={v.isCompleted} onChange={()=>toggleVideo(v.id)}/>
+                <span style={{
+                  fontSize:14, flex:1, minWidth:0,
+                  textDecoration: v.isCompleted ? 'line-through' : 'none',
+                  color: v.isCompleted ? 'var(--muted)' : 'var(--text)',
+                  overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'
+                }}>{v.title}</span>
+              </label>
+              <div style={{display:'flex',gap:6,flexShrink:0}}>
+                <a href={ytUrl(v.youtubeId)} target="_blank" rel="noreferrer"
+                  style={{display:'flex',alignItems:'center',gap:6,padding:'6px 12px',borderRadius:8,
+                    background:'#ff000015',color:'#f87171',fontSize:12,fontWeight:600,
+                    textDecoration:'none',border:'1px solid #ff000030',transition:'all 0.15s',
+                    fontFamily:'Syne,sans-serif'}}
+                  onMouseEnter={e=>{e.currentTarget.style.background='#ff000025'}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='#ff000015'}}>
+                  <Icon name="youtube" size={12}/>Watch
+                </a>
+                <button className="btn btn-danger" style={{padding:'6px 10px',fontSize:12}} onClick={()=>deleteVideo(v.id)}>
+                  <Icon name="trash" size={12}/>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── CourseCard ────────────────────────────────────────────────────────────────
+const CourseCard = ({ course, onClick, onEdit, onDelete }) => {
+  const completed = course.videos.filter(v=>v.isCompleted).length;
+  const total = course.videos.length;
+  const pct = total ? Math.round((completed/total)*100) : 0;
+  const catColor = CAT_COLORS[course.category] || '#94a3b8';
+  const isDone = total > 0 && pct === 100;
+
+  return (
+    <div className="glass course-card" style={{padding:20,cursor:'pointer',position:'relative'}} onClick={onClick}>
+      {/* cat stripe */}
+      <div style={{position:'absolute',top:0,left:0,right:0,height:3,borderRadius:'16px 16px 0 0',background:catColor,opacity:0.7}}/>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+            <span className="badge" style={{background:catColor+'22',color:catColor}}>{course.category}</span>
+            {isDone && <span className="badge" style={{background:'#34d39922',color:'#34d399'}}>Done</span>}
+          </div>
+          <h3 style={{fontSize:16,fontWeight:700,lineHeight:1.3,marginBottom:4,overflow:'hidden',textOverflow:'ellipsis',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>{course.title}</h3>
+          {course.description && <p style={{fontSize:12,color:'var(--muted)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{course.description}</p>}
+        </div>
+        <div style={{display:'flex',gap:4,marginLeft:8,flexShrink:0}} onClick={e=>e.stopPropagation()}>
+          <button className="btn btn-ghost" style={{padding:'5px 8px'}} onClick={()=>onEdit(course)}><Icon name="edit" size={13}/></button>
+          <button className="btn btn-ghost" style={{padding:'5px 8px',color:'var(--red)'}} onClick={()=>onDelete(course.id)}><Icon name="trash" size={13}/></button>
+        </div>
+      </div>
+
+      <div style={{marginBottom:12}}>
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+          <span style={{fontSize:12,color:'var(--muted)'}}>{completed}/{total} videos</span>
+          <span style={{fontSize:12,fontWeight:600,color:isDone?'#34d399':catColor}}>{pct}%</span>
+        </div>
+        <div className="prog-track">
+          <div className="prog-fill" style={{width:`${pct}%`,background:isDone?'#34d399':catColor}}/>
+        </div>
+      </div>
+
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div style={{display:'flex',alignItems:'center',gap:6,color:'var(--muted)',fontSize:12}}>
+          <Icon name="youtube" size={13}/>
+          <span>{total} video{total!==1?'s':''}</span>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:4,color:catColor,fontSize:12,fontFamily:'Syne,sans-serif',fontWeight:600}}>
+          Open <Icon name="arrow" size={12}/>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Main App ──────────────────────────────────────────────────────────────────
+const App = () => {
+  const [courses, setCourses] = useState(loadData);
+  const [modal, setModal] = useState(null); // null | 'addCourse' | {edit: course}
+  const [detail, setDetail] = useState(null); // course id
+  const [filter, setFilter] = useState('all'); // all | inprogress | completed
+  const [catFilter, setCatFilter] = useState('all');
+  const [search, setSearch] = useState('');
+
+  useEffect(() => { saveData(courses); }, [courses]);
+
+  const addCourse = (data) => {
+    setCourses(c => [...c, { id: uid(), ...data, videos: [], createdAt: Date.now() }]);
+    toast('Course created!');
+  };
+  const editCourse = (data) => {
+    const orig = modal.edit;
+    setCourses(c => c.map(x => x.id === orig.id ? {...x, ...data} : x));
+    toast('Course updated');
+  };
+  const deleteCourse = (id) => {
+    if (!confirm('Delete this course and all its videos?')) return;
+    setCourses(c => c.filter(x => x.id !== id));
+    toast('Course deleted', 'info');
+  };
+  const updateCourse = (updated) => {
+    setCourses(c => c.map(x => x.id === updated.id ? updated : x));
+  };
+
+  // stats
+  const totalVideos = courses.reduce((a,c)=>a+c.videos.length,0);
+  const totalDone = courses.reduce((a,c)=>a+c.videos.filter(v=>v.isCompleted).length,0);
+  const completedCourses = courses.filter(c=>c.videos.length>0&&c.videos.every(v=>v.isCompleted)).length;
+
+  const activeCourse = detail ? courses.find(c=>c.id===detail) : null;
+
+  // filter courses
+  const visibleCourses = courses.filter(c => {
+    const total = c.videos.length;
+    const done = c.videos.filter(v=>v.isCompleted).length;
+    const pct = total ? done/total : 0;
+    if (filter==='completed' && pct<1) return false;
+    if (filter==='inprogress' && (pct===0||pct===1)) return false;
+    if (catFilter!=='all' && c.category!==catFilter) return false;
+    if (search && !c.title.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  const usedCats = [...new Set(courses.map(c=>c.category))];
+
+  return (
+    <div className="app-wrapper">
+      {/* bg orbs */}
+      <div className="orb" style={{width:500,height:500,background:'#7c6af720',top:-100,right:-100}}/>
+      <div className="orb" style={{width:400,height:400,background:'#34d39912',bottom:0,left:-80}}/>
+
+      {/* modals */}
+      {modal === 'addCourse' && <AddCourseModal onClose={()=>setModal(null)} onSave={addCourse}/>}
+      {modal?.edit && <AddCourseModal initial={modal.edit} onClose={()=>setModal(null)} onSave={editCourse}/>}
+      <Toast/>
+
+      <div style={{display:'flex',minHeight:'100vh'}}>
+        {/* sidebar */}
+        <aside style={{
+          width:220,flexShrink:0,
+          background:'var(--surface)',
+          borderRight:'1px solid var(--border)',
+          padding:20,
+          display:'flex',flexDirection:'column',gap:4,
+          position:'sticky',top:0,height:'100vh',
+          overflowY:'auto'
+        }}>
+          {/* logo */}
+          <div style={{marginBottom:28,paddingBottom:20,borderBottom:'1px solid var(--border)'}}>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <div style={{width:32,height:32,borderRadius:8,background:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <Icon name="zap" size={16} color="#fff"/>
+              </div>
+              <div>
+                <div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:15,lineHeight:1}}>StudyFlow</div>
+                <div style={{fontSize:10,color:'var(--muted)',marginTop:2}}>YT Learning Tracker</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="section-label" style={{marginBottom:6,paddingLeft:14}}>Navigation</div>
+          <button className={`nav-item ${!detail?'active':''}`} onClick={()=>setDetail(null)}>
+            <Icon name="grid" size={14}/>All Courses
+          </button>
+          <button className={`nav-item`} onClick={()=>{setDetail(null);setFilter('inprogress')}}>
+            <Icon name="trend" size={14}/>In Progress
+          </button>
+          <button className={`nav-item`} onClick={()=>{setDetail(null);setFilter('completed')}}>
+            <Icon name="check" size={14}/>Completed
+          </button>
+
+          {usedCats.length>0 && <>
+            <div className="section-label" style={{marginTop:16,marginBottom:6,paddingLeft:14}}>Categories</div>
+            {usedCats.map(cat=>(
+              <button key={cat} className={`nav-item ${catFilter===cat&&!detail?'active':''}`}
+                onClick={()=>{setDetail(null);setCatFilter(cat);setFilter('all')}}>
+                <span style={{width:8,height:8,borderRadius:'50%',background:CAT_COLORS[cat],flexShrink:0}}/>
+                {cat}
+              </button>
+            ))}
+          </>}
+
+          <div style={{flex:1}}/>
+          <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>setModal('addCourse')}>
+            <Icon name="plus" size={14}/>New Course
+          </button>
+        </aside>
+
+        {/* main */}
+        <main style={{flex:1,overflowY:'auto',padding:'32px 36px',minWidth:0}}>
+          {activeCourse ? (
+            <CourseDetail
+              course={activeCourse}
+              onBack={()=>setDetail(null)}
+              onUpdateCourse={updateCourse}
+            />
+          ) : (
+            <>
+              {/* top bar */}
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:28,gap:16,flexWrap:'wrap'}}>
+                <div>
+                  <h1 style={{fontSize:26,fontWeight:800}}>Learning Dashboard</h1>
+                  <p style={{color:'var(--muted)',fontSize:14,marginTop:2}}>{courses.length} course{courses.length!==1?'s':''} tracked</p>
+                </div>
+                <div style={{display:'flex',gap:10,alignItems:'center'}}>
+                  <div className="search-wrap">
+                    <Icon name="search" size={14} color="var(--muted)"/>
+                    <input className="inp" placeholder="Search courses…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:200}}/>
+                  </div>
+                  <button className="btn btn-primary" onClick={()=>setModal('addCourse')}>
+                    <Icon name="plus" size={14}/>New Course
+                  </button>
+                </div>
+              </div>
+
+              {/* stats row */}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:12,marginBottom:28}}>
+                {[
+                  {label:'Total Courses',val:courses.length,icon:'folder',color:'#7c6af7'},
+                  {label:'Videos Tracked',val:totalVideos,icon:'youtube',color:'#f87171'},
+                  {label:'Videos Watched',val:totalDone,icon:'check',color:'#34d399'},
+                  {label:'Courses Done',val:completedCourses,icon:'star',color:'#fbbf24'},
+                ].map(s=>(
+                  <div key={s.label} className="stat-card">
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
+                      <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Syne,sans-serif',fontWeight:600,letterSpacing:'0.05em',textTransform:'uppercase'}}>{s.label}</div>
+                      <div style={{width:28,height:28,borderRadius:8,background:s.color+'20',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        <Icon name={s.icon} size={14} color={s.color}/>
+                      </div>
+                    </div>
+                    <div style={{fontSize:28,fontWeight:800,color:s.color}}>{s.val}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* filters */}
+              <div style={{display:'flex',gap:6,marginBottom:22,flexWrap:'wrap',alignItems:'center'}}>
+                <div style={{display:'flex',gap:4,background:'var(--surface)',border:'1px solid var(--border)',borderRadius:10,padding:4}}>
+                  {[['all','All'],['inprogress','In Progress'],['completed','Completed']].map(([k,l])=>(
+                    <button key={k} className={`tab-pill ${filter===k?'active':''}`} onClick={()=>setFilter(k)}>{l}</button>
+                  ))}
+                </div>
+                <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                  <button className={`tab-pill ${catFilter==='all'?'active':''}`} onClick={()=>setCatFilter('all')}>All Categories</button>
+                  {usedCats.map(c=>(
+                    <button key={c} className={`tab-pill ${catFilter===c?'active':''}`}
+                      onClick={()=>setCatFilter(c)}
+                      style={catFilter===c?{background:CAT_COLORS[c]+'22',color:CAT_COLORS[c]}:{}}>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* grid */}
+              {visibleCourses.length === 0 ? (
+                <div className="empty-dashed">
+                  <Icon name="book" size={40} color="var(--muted)" style={{margin:'0 auto 16px',display:'block'}}/>
+                  <h3 style={{fontSize:18,marginBottom:8,color:'var(--muted)'}}>
+                    {courses.length === 0 ? "No courses yet" : "No courses match your filters"}
+                  </h3>
+                  <p style={{color:'var(--muted)',fontSize:14,marginBottom:20}}>
+                    {courses.length === 0 ? "Create your first course and start tracking your YouTube learning journey." : "Try adjusting your search or filters."}
+                  </p>
+                  {courses.length === 0 && (
+                    <button className="btn btn-primary" onClick={()=>setModal('addCourse')}>
+                      <Icon name="plus" size={14}/>Create First Course
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:16}}>
+                  {visibleCourses.map(c=>(
+                    <CourseCard key={c.id} course={c}
+                      onClick={()=>setDetail(c.id)}
+                      onEdit={c=>setModal({edit:c})}
+                      onDelete={deleteCourse}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.render(<App/>, document.getElementById('root'));
+</script>
+</body>
+</html>
