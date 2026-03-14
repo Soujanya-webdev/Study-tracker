@@ -1,10 +1,10 @@
-
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>StudyFlow — Turn YouTube Into a Curriculum</title>
+<title>StudyTrack — Turn YouTube Into a Curriculum</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Epilogue:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -16,10 +16,11 @@
   <ul class="nav-links">
     <li><a href="#how">How It Works</a></li>
     <li><a href="#features">Features</a></li>
-    <li><a href="#demo">Demo</a></li>
+    <li><a href="#faq">FAQs</a></li>
     <li><a href="#love">Testimonials</a></li>
   </ul>
-  <button class="nav-cta">Start Free →</button>
+  <!-- <button class="nav-cta" href="youtube-study-tracker.html">Start Free →</button> -->
+        <a href="youtube-study-tracker.html" class="btn-primary">Get Started Free</a>
 </nav>
 
 <!-- HERO -->
@@ -31,8 +32,8 @@
       Turn YouTube into a structured study system — log videos, track hours, measure progress, and actually finish what you start.
     </p>
     <div class="hero-actions">
-      <a href="#" class="btn-primary">Get Started Free</a>
-      <a href="#demo" class="btn-ghost">See the Demo</a>
+      <a href="youtube-study-tracker.html" class="btn-primary">Get Started Free</a>
+      <!-- <a href="#demo" class="btn-ghost">See the Demo</a> -->
     </div>
   </div>
 
@@ -135,6 +136,98 @@
   </div>
 </section>
 
+
+
+<!-- Features -->
+<section id="features">
+  <p class="section-label">What's inside</p>
+  <h2>Built Different. <br>Not a dashboard. A habit</h2>
+
+  <div class="features-grid">
+    <div class="feat-card">
+      <span class="feat-emogi">📚</span>
+      <h3>Custom Courses</h3>
+      <p>Create named course folders for any subjecyt. Add a category,description, and start building your curriculam video by video</p>
+      <span class="feat-tag">Unlimited Courses</span>
+    </div>
+       <div class="feat-card">
+      <span class="feat-emogi">🔗</span>
+      <h3>Smart URL Parser</h3>
+      <p> Paste any YouTube link-full watch URLs,shortened youtu.be links, Shorts, or even a raw 11-charecter video ID. It just works.</p>
+      <span class="feat-tag">Auto Thumbnail preview</span>
+    </div>
+       <div class="feat-card">
+      <span class="feat-emogi">📊</span>
+      <h3>Live Progress Bars</h3>
+      <p>Create named course folders for any subjecyt. Add a category,description, and start building your curriculam video by video</p>
+      <span class="feat-tag">Unlimited Courses</span>
+    </div>
+       <div class="feat-card">
+      <span class="feat-emogi">🎬</span>
+      <h3>Study mode</h3>
+      <p>Create named course folders for any subjecyt. Add a category,description, and start building your curriculam video by video</p>
+      <span class="feat-tag">Filters: All / Todo /Done</span>
+    </div>
+       <!-- <div class="feat-card">
+      <span class="feat-emogi">🔍</span>
+      <h3>Filter & Search</h3>
+      <p>Create named course folders for any subjecyt. Add a category,description, and start building your curriculam video by video</p>
+      <span class="feat-tag">8 categories</span>
+    </div> -->
+     <div class="feat-card">
+      <span class="feat-emogi">💾</span>
+      <h3>100% Offline Storage</h3>
+      <p>Create named course folders for any subjecyt. Add a category,description, and start building your curriculam video by video</p>
+      <span class="feat-tag">Your data stays loyal to you!</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- FAQ -->
+<section class="faq-section" id="faq">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:0">
+      <div class="section-label reveal" style="justify-content:center">FAQ</div>
+      <h2 class="section-h reveal">Frequently asked questions</h2>
+    </div>
+    <div class="faq-grid">
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Is StudyFlow really free?<div class="faq-toggle">+</div></div>
+        <div class="faq-a">Yes, completely free — forever. There's no premium tier, no ads, and no plans to monetise. It's a static HTML file you can download and run locally.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Where is my data stored?<div class="faq-toggle">+</div></div>
+        <div class="faq-a">All data is stored in your browser's localStorage under the key <code style="font-family:var(--mono);font-size:12px">studyflow_v1</code>. Nothing is sent to any server. Your data never leaves your device.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Will my data survive if I clear my browser?<div class="faq-toggle">+</div></div>
+        <div class="faq-a">Clearing browser data will erase localStorage. To prevent this, back up your data by exporting the localStorage value from DevTools. We plan to add an export/import feature soon.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Does it work offline?<div class="faq-toggle">+</div></div>
+        <div class="faq-a">Yes! All app functionality works offline — creating courses, tracking progress, marking completions. You only need internet to actually watch videos on YouTube.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Can I use it on mobile?<div class="faq-toggle">+</div></div>
+        <div class="faq-a">The app is functional on mobile browsers, though it's primarily designed for desktop use. The layout adapts to smaller screens. A dedicated mobile-optimised version is on the roadmap.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">What YouTube URL formats are supported?<div class="faq-toggle">+</div></div>
+        <div class="faq-a">All standard YouTube URL formats work: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID, youtube.com/embed/ID, and even the raw 11-character video ID on its own.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Can I sync between devices?<div class="faq-toggle">+</div></div>
+        <div class="faq-a">Not yet — since data lives in localStorage, it's device-specific. Cross-device sync via export/import JSON is planned. In the meantime, manual backup via DevTools works.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Is there a limit on courses or videos?<div class="faq-toggle">+</div></div>
+        <div class="faq-a">There's no hard limit set by the app. The practical limit is localStorage size (~5MB in most browsers), which is more than enough for thousands of courses and videos.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Testimonials -->
 <section class="testimonials" id="love">
   <p class="section-label">From the grinders</p>
@@ -148,11 +241,11 @@
     </div>
      <div class="testi-card">
       <blockquote>No login. No premium tier. No upsell. Just a clean tool that does exactly what it says. Rare these days.</blockquote>
-      <div class="testi-author"><strong>Arjun M.</strong>Self-taught dev, Hack Club member</div>
+      <div class="testi-author"><strong>Arjun M.</strong>Self-taught dev </div>
     </div>
     <div class="testi-card">
       <blockquote>My 9-day streak is the first time I've studied consistently in months. The tracker is embarrassingly motivating.</blockquote>
-      <div class="testi-author"><strong>Zoe K.</strong>Prepping for GSoC</div>
+      <div class="testi-author"><strong>Sriyal R.</strong>Prepping for xii Boards</div>
     </div>
   </div>
 </section>
@@ -161,21 +254,22 @@
 <!-- cta  -->
  <section class="cta-section">
   <p class="section-label" style="justify-content: center;">Ready?</p>
+  <h2>Stop Bookmarking. <br> Start tracking.</h2>
   <p class="cta-sub">Free forever. No sign up. Works right in your browser - because you have better things to do than manage accounts.</p>
   <div class="cta-actions">
-    <a href="" class="btn-primary"> OPen the Tracker -> </a>
-    <a href="https://github.com" class="btn-ghost">View on GitHub</a>
+    <a href="youtube-study-tracker.html" class="btn-primary"> Open the Tracker -> </a>
+    <a href="https://github.com/Soujanya-webdev/Study-tracker" class="btn-ghost">View on GitHub</a>
   </div>
  </section>
 
  <!-- footer  -->
   <footer>
-    <div class="footer-logo">StudyTrack</div>
+    <div class="footer-logo" href="index.html" >StudyTrack</div>
     <div class="footer-mono">
       Made with too much Chai(Tea!)
     </div>
     <div class="footer-mono" style="font-size: .65rem;">
-      No dta collected ever.
+      No data collected ever.
     </div>
   </footer>
   <script src="script.js"></script>
