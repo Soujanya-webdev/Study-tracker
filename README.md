@@ -1,4 +1,4 @@
-# StudyFlow — YouTube Learning Tracker
+# StudyTrack — YouTube Learning Tracker
 
 ## Description
 StudyFlow is a simple web app that helps users organize and track YouTube videos they want to learn from. Users can create courses, add YouTube videos to them, and mark videos as completed to monitor their learning progress.
